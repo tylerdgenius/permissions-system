@@ -1,0 +1,32 @@
+version: '3'
+services:
+  backend:
+    container_name: backend
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - '7500:7500'
+    depends_on:
+      - database
+    environment:
+      - APP_PORT=7500
+      - APP_VERSION=1
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
+      - DATABASE_USENAME=admin
+      - DATEBASE_PASSWORD=Password$
+      - DATABASE_NAME=permissions
+      - DATABSE_TYPE=postgres
+      - ACCESS_TOKEN_SECRET=$-backend-access-$
+      - PASSWORD_ENCRYPTION_SALT=10
+    command: npm run start:dev
+  database:
+    container_name: database
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_default_admin
+    volumes:
+      - ./init_scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
