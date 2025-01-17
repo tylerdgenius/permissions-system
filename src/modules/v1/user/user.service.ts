@@ -1,3 +1,4 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import {
   BadRequestException,
   ConflictException,
@@ -7,16 +8,17 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { User } from './user.entity';
-import { constants, getters } from 'src/helpers';
+import { OnEvent } from '@nestjs/event-emitter';
+import { compare, hash } from 'bcryptjs';
+import { sign } from 'jsonwebtoken';
 import { CreateUserDto, LoginUserDto } from 'src/dtos';
 import { StatusEnums, TypesEnum } from 'src/enums';
+import { constants, getters } from 'src/helpers';
+import { Repository } from 'typeorm';
 import { OrganizationService } from '../organization/organization.service';
-import { hash, compare } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
-import { RoleService } from '../role/role.service';
 import { PermissionService } from '../permission/permission.service';
+import { RoleService } from '../role/role.service';
+import { User } from './user.entity';
 
 @Injectable()
 export class UserService {
@@ -26,6 +28,7 @@ export class UserService {
     private organizationService: OrganizationService,
     private roleService: RoleService,
     private permissionsService: PermissionService,
+    private mailService: MailerService,
   ) {}
 
   async findUserByEmail(email: string) {
@@ -291,5 +294,17 @@ export class UserService {
       .leftJoinAndSelect('user.role', 'role')
       .where('user.id = :id', filter)
       .getOne();
+  }
+
+  @OnEvent('user.created')
+  async handleUserCreatedEvent(user: User) {
+    await this.mailService.sendMail({
+      to: 'albertnwachukwu@gmail.com',
+      subject: 'Welcome to My App! Confirm your Email',
+      template: './confirmation',
+      context: {
+        name: 'User', // Replace with dynamic values
+      },
+    });
   }
 }

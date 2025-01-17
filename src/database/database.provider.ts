@@ -1,6 +1,6 @@
-import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { constants, getters } from 'src/helpers';
+import { DataSource } from 'typeorm';
 
 const shouldSynchronize = getters.getDevelopmentStatus();
 
